@@ -1,154 +1,98 @@
 package com.example.workmanagerkotlin
 
-import android.Manifest
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
-import android.widget.ProgressBar
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.work.*
-import com.example.workmanagerkotlin.DownLoadFileWorkManager.*
+import com.squareup.picasso.Picasso
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import java.io.File
 
 
 import java.util.concurrent.TimeUnit
 
-class WorkManagerActivity : AppCompatActivity(), View.OnClickListener {
+class WorkManagerActivity : AppCompatActivity() {
+    var iv_1: ImageView? = null
+    var iv_2: ImageView? = null
+    var iv_3: ImageView? = null
 
-    private var periodaticworkmanager: Button? = null
 
-    /**
-     * Runtime permissions object init to check storage persmissions
-     */
-    var runtimePermission: RunTimePermission = RunTimePermission(this)
-
-    /**
-     *  Workmanager global instance to enqueue tasks & get update
-     */
-    val workManager = WorkManager.getInstance()
-    var btnStartDownloadWork: Button? = null
-    var llProgress: ProgressBar? = null
+    val jsonString: String = "[\n" +
+            "  {\n" +
+            "    \"albumId\": 1,\n" +
+            "    \"id\": 1,\n" +
+            "    \"title\": \"Eminem\",\n" +
+            "    \"url\": \"https://i.pinimg.com/originals/c4/14/4f/c4144fba258c2f0b4735180fe5d9a03b.jpg\",\n" +
+            "    \"thumbnailUrl\": \"https://via.placeholder.com/150/92c952\"\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"albumId\": 1,\n" +
+            "    \"id\": 2,\n" +
+            "    \"title\": \"MEME\",\n" +
+            "    \"url\": \"https://pics.me.me/eminems-emotions-suprised-sad-happy-curious-annoyed-excited-shocked-bored-13877943.png\",\n" +
+            "    \"thumbnailUrl\": \"https://via.placeholder.com/150/771796\"\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"albumId\": 1,\n" +
+            "    \"id\": 3,\n" +
+            "    \"title\": \"Eminem News\",\n" +
+            "    \"url\": \"https://www.sohh.com/wp-content/uploads/Eminem.jpg\",\n" +
+            "    \"thumbnailUrl\": \"https://via.placeholder.com/150/24f355\"\n" +
+            "  }]"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_work_manager)
-        btnStartDownloadWork = findViewById(R.id.btnStartDownloadWork)
-        periodaticworkmanager = findViewById<Button>(R.id.periodaticworkmanager)
-        llProgress = findViewById(R.id.progressBar)
-        //init clicklistener for both buttons
-        btnStartDownloadWork?.setOnClickListener(this@WorkManagerActivity)
-        periodaticworkmanager?.setOnClickListener(this@WorkManagerActivity)
+        iv_1 = findViewById(R.id.iv_1)
+        iv_2 = findViewById(R.id.iv_2)
+        iv_3 = findViewById(R.id.iv_3)
+        findViewById<Button>(R.id.btn_download).setOnClickListener {
+            startWorker()
+        }
+    }
+    private fun startWorker() {
+        val data = Data.Builder()
+            .putString("images", jsonString)
+            .build()
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+
+        val oneTimeRequest = OneTimeWorkRequest.Builder(ImageDownloadWorker::class.java)
+            .setInputData(data)
+            .setConstraints(constraints.build())
+            .addTag("demo")
+            .build()
+
+        Toast.makeText(this, "Starting worker", Toast.LENGTH_SHORT).show()
+
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork("AndroidVille", ExistingWorkPolicy.KEEP, oneTimeRequest)
     }
 
-    /**
-     * TODO When use clicl on buttons it will call below methods
-     *
-     * @param view clicked item view(or id)
-     */
-    override fun onClick(view: View) {
-
-        when (view.id) {
-            R.id.btnStartDownloadWork -> {
-                runtimePermission.requestPermission(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    object : RunTimePermission.PermissionCallback {
-                        override fun onGranted() {
-
-                            StartOneTimeWorkManager()
-                        }
-
-                        override fun onDenied() {
-                            //show message if not allow storage permission
-                        }
-                    })
-            }
-
-            R.id.periodaticworkmanager -> {
-                runtimePermission.requestPermission(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    object : RunTimePermission.PermissionCallback {
-                        override fun onGranted() {
-
-                            StartPeriodicWorkManager()
-                        }
-
-                        override fun onDenied() {
-                            //show message if not allow storage permission
-                        }
-
-                    })
-
-            }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onEvent(imageDownloadedEvent: ImageDownloadedEvent) {
+        val file = File("${imageDownloadedEvent.path}/${imageDownloadedEvent.name}")
+        when (imageDownloadedEvent.id) {
+            "1" -> Picasso.get().load(file).into(iv_1)
+            "2" -> Picasso.get().load(file).into(iv_2)
+            "3" -> Picasso.get().load(file).into(iv_3)
         }
     }
 
-
-    private fun StartOneTimeWorkManager() {
-
-        val constraints = androidx.work.Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        val task = OneTimeWorkRequest.Builder(DownLoadFileWorkManager::class.java).setConstraints(constraints).build()
-        workManager.enqueue(task)
-
-        workManager.getWorkInfoByIdLiveData(task.id)
-            .observe(this@WorkManagerActivity, Observer {
-                it?.let {
-
-                    if (it.state == WorkInfo.State.RUNNING) {
-                        loaderShow(true)
-
-                    }else
-                        if (it.state.isFinished) {
-
-                            Toast.makeText(this@WorkManagerActivity, "Hecho", Toast.LENGTH_SHORT).show()
-                            loaderShow(false)
-                        }
-                }
-            })
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
     }
 
-    // Every periodic [PERIODIC_INTERVAL] interval work execute
-    private fun StartPeriodicWorkManager() {
-        loaderShow(true)
-        val periodicWorkRequest = PeriodicWorkRequest.Builder(
-            DownLoadFileWorkManager::class.java,
-            PERIODIC_INTERVAL,
-            TimeUnit.MINUTES
-        ).setConstraints(
-            Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-        ).build()
-
-        workManager.enqueue(periodicWorkRequest)
-
-
-        workManager.getWorkInfoByIdLiveData(periodicWorkRequest.id)
-            .observe(this@WorkManagerActivity, Observer {
-                it?.let {
-                    if (it.state == WorkInfo.State.ENQUEUED) {
-
-                        loaderShow(false)
-                        Toast.makeText(this@WorkManagerActivity, "Hecho", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            })
+    override fun onStop() {
+        super.onStop()
+        EventBus.getDefault().unregister(this)
     }
 
-    /**
-     * Loader visibility
-     */
-    private fun loaderShow(flag: Boolean) {
-        when (flag) {
-            true -> llProgress?.visibility = View.VISIBLE
-            false -> llProgress?.visibility = View.GONE
-        }
-    }
 
-    /**
-     * Request permission result pass to RuntimePermission.kt
-     */
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == PERMISION_REQUEST)
-            runtimePermission.onRequestPermissionsResult(grantResults)
-
-    }
 }

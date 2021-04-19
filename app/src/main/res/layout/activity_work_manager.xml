@@ -1,70 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EDEAE0"
-    tools:context=".DownloadCoroutineActivity">
+    android:orientation="vertical"
+    tools:context=".WorkManagerActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:lineSpacingExtra="2dp"
-        android:padding="28dp"
-        android:text="Mensaje"
-        android:textSize="16sp"
-        tools:layout_editor_absoluteX="137dp"
-        tools:layout_editor_absoluteY="80dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_1"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_marginTop="32dp"
+                android:scaleType="fitXY" />
+
+            <ImageView
+                android:id="@+id/iv_2"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_marginTop="32dp"
+                android:scaleType="fitXY" />
+
+            <ImageView
+                android:id="@+id/iv_3"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_marginTop="32dp"
+                android:scaleType="fitXY" />
+
+        </LinearLayout>
+    </ScrollView>
+
 
     <Button
-        android:id="@+id/btnStartDownloadWork"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_download"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Empezar Descarga"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/periodaticworkmanager"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        android:layout_gravity="bottom"
+        android:text="Start Download" />
 
-    <Button
-        android:id="@+id/periodaticworkmanager"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:lineSpacingExtra="2dp"
-        android:text="Periodic Download"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="-4dp" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cancel"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout android:layout_width="wrap_content"
-        android:id="@+id/llProgress"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:textColor="@android:color/black"
-            android:text="Download Running"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
